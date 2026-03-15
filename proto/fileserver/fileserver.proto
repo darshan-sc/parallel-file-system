@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package fileserver;
+
+option go_package = "pfs/gen/fileserverpb";
+
+service FileService {
+  rpc ReadBytes(ReadRequest) returns (ReadResponse);
+  rpc WriteBytes(WriteRequest) returns (WriteResponse);
+}
+
+message ReadRequest {
+  string filename = 1;
+  int64 offset = 2;
+  int64 length = 3;
+}
+
+message ReadResponse {
+  bytes data = 1;
+}
+
+message WriteRequest {
+  string filename = 1;
+  int64 offset = 2;
+  bytes data = 3;
+}
+
+message WriteResponse {
+  int64 bytes_written = 1;
+}

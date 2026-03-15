@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package metadata;
+
+option go_package = "pfs/gen/metadatapb";
+
+service MetadataService {
+  rpc CreateFile(CreateFileRequest) returns (CreateFileResponse);
+  rpc OpenFile(OpenFileRequest) returns (OpenFileResponse);
+  rpc CloseFile(CloseFileRequest) returns (CloseFileResponse);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+  rpc StatFile(StatFileRequest) returns (StatFileResponse);
+  rpc Subscribe(SubscribeRequest) returns (stream InvalidateNotice);
+}
+
+message StripeRecipe {
+  int64 block_size = 1;
+  int32 stripe_width = 2;
+  repeated string server_addrs = 3;
+}
+
+message FileMetadata {
+  string filename = 1;
+  int64 size = 2;
+  int64 ctime = 3;
+  int64 mtime = 4;
+  StripeRecipe recipe = 5;
+}
+
+message CreateFileRequest {
+  string filename = 1;
+  int32 stripe_width = 2;
+}
+
+message CreateFileResponse {
+  int32 status = 1; // 0 = ok, non-zero = error
+  string error = 2;
+}
+
+message OpenFileRequest {
+  string filename = 1;
+  int32 mode = 2; // 0 = read, 1 = write
+  string client_id = 3;
+}
+
+message OpenFileResponse {
+  int32 status = 1;
+  string error = 2;
+  int32 fd = 3;
+  FileMetadata metadata = 4;
+}
+
+message CloseFileRequest {
+  int32 fd = 1;
+  string client_id = 2;
+  repeated int64 dirty_blocks = 3;
+}
+
+message CloseFileResponse {
+  int32 status = 1;
+  string error = 2;
+}
+
+message DeleteFileRequest {
+  string filename = 1;
+}
+
+message DeleteFileResponse {
+  int32 status = 1;
+  string error = 2;
+}
+
+message StatFileRequest {
+  int32 fd = 1;
+  string client_id = 2;
+}
+
+message StatFileResponse {
+  int32 status = 1;
+  string error = 2;
+  FileMetadata metadata = 3;
+}
+
+message SubscribeRequest {
+  string client_id = 1;
+}
+
+message InvalidateNotice {
+  string filename = 1;
+  repeated int64 block_indices = 2; // empty means invalidate all blocks
+}
